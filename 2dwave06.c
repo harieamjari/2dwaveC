@@ -1,4 +1,5 @@
 /* gcc 2dwave06.c -lpng16 -lm -lz -fopenmp -march=native -O3 */
+/* PE https://drive.google.com/file/d/1zPKJwzQFhrK2ftnvRMgUWTAdcJ8gOfXN/view?usp=sharing */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
