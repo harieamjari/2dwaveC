@@ -1,4 +1,3 @@
-/* gcc 2dwave06.c -lpng16 -lm -lz -fopenmp -march=native -O3 */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -195,9 +194,8 @@ main (int argc, char **argv)
   pcmin = malloc (sizeof (int16_t) * numsamples);
   pcmout = malloc (sizeof (int16_t) * numsamples);
   fread (pcmin, sizeof (int16_t), numsamples, wavin);
-  fclose(wavin);
 
-  const double delta_x = 1.0 / 44100.0, c = 1900.0, h = 1.0;
+  const double delta_x = 1.0 / 44100.0, c = 250.0, h = 2.0;
 
   v = malloc (sizeof (double *) * height);
   u = malloc (sizeof (double *) * height);
@@ -228,7 +226,7 @@ main (int argc, char **argv)
 
 /* This is where the simulation begins */
 #pragma omp parallel for ordered schedule(dynamic)
-  for (uint32_t file = 0; file < (numsamples * 25) / 44100; file++)
+  for (int file = 0; file < (numsamples * 25) / 44100; file++)
     {
       char buff[50] = { 0 };
 #pragma omp ordered
@@ -239,9 +237,10 @@ main (int argc, char **argv)
         fflush (stdout);
         for (int i = 0; i < (int) (1.0 / (FPS * delta_x)); i++)
           {
-            //int bb = printf ("%d/%d", i, (int) (1.0 / (FPS * delta_x)) - 1);
-            //fflush (stdout);
+            int bb = printf ("%d/%d", i, (int) (1.0 / (FPS * delta_x)) - 1);
+            fflush (stdout);
             u[height / 2][width / 2] += (double) pcmin[pcm_ctr];
+#pragma omp parallel for collapse(2)
             for (int x = 0; x < width; x++)
               for (int y = 0; y < height; y++)
                 {
@@ -258,17 +257,17 @@ main (int argc, char **argv)
                                                                     1] -
                                        (4.0 * u[y][x])) / (h * h);
                 }
-
+#pragma omp parallel for collapse(2)
             for (int x = 0; x < width; x++)
               for (int y = 0; y < height; y++)
                 {
                   u[y][x] += delta_x * v[y][x];
-                  u[y][x] *= 0.999;      // damp
+                  //u[y][x] *= 0.99999;      // damp
                 }
-            pcmout[pcm_ctr] = (int16_t) u[(height/2) + 50][width / 2];
+            pcmout[pcm_ctr] = (int16_t) u[300][width / 2];
             pcm_ctr++;
-            //for (int i = 0; i < bb; i++)
-              //putchar ('\b');
+            for (int i = 0; i < bb; i++)
+              putchar ('\b');
 
           }
 #pragma omp parallel for collapse(2)
@@ -276,10 +275,6 @@ main (int argc, char **argv)
           for (int y = 0; y < height; y++)
             write_heatmap (u[y][x], &png_frame[y][x * 4]);
       }
-      png_frame[(height/2) + 50 ][(4*width/2)] = 255;
-      png_frame[(height/2) + 50 ][(4*width/2) + 1] = 0;
-      png_frame[(height/2) + 50 ][(4*width/2) + 2] = 0;
-
       FILE *fpout = fopen (buff, "wb");
       if (fpout == NULL)
         {
@@ -309,13 +304,13 @@ main (int argc, char **argv)
 // INDENT-ON
       png_write_info (png, info);
 
-      write_wav ();
       png_write_image (png, png_frame);
       png_write_end (png, NULL);
       fclose (fpout);
       png_destroy_write_struct (&png, &info);
 
     };
+  write_wav ();
   free (pcmin);
   free (pcmout);
 
