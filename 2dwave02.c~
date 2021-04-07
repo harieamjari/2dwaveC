@@ -8,7 +8,7 @@
 #error "Don't turn NDEBUG!!"
 #endif
 
-#define frame 1000
+#define frame 10
 #define FPS 25.0
 
 const int width = 1000, height = 700;
@@ -57,7 +57,7 @@ main ()
         v[y][x] = 0.0;
       }
 
-  png_bytep *png_frame = malloc (sizeof (png_byte *) * height);
+  png_bytep *png_frame = malloc (sizeof (png_byte) * height);
   assert (png_frame != NULL);
 
 #pragma omp parallel for
@@ -65,43 +65,38 @@ main ()
     assert ((png_frame[y] = malloc (4 * width)) != NULL);
 
 /* This is where the simulation begins */
-
-#pragma omp parallel for ordered schedule(dynamic)
+#pragma omp parallel for ordered schedule(static)
   for (int file = 0; file < frame; file++)
     {
+      char buff[50] = { 0 };
+
+      sprintf (buff, "tt-%03d.png", file);
+
 #pragma omp ordered
       {
-        char buff[50] = { 0 };
-        sprintf (buff, "tt-%03d.png", file);
-
         printf ("\rWriting png frame: %s %d/%d... ", buff, file, frame - 1);
         fflush (stdout);
         for (int i = 0; i < (int) (1.0 / (FPS * delta_x)); i++)
           {
-#pragma omp parallel for collapse(2)
             for (int x = 0; x < width; x++)
               for (int y = 0; y < height; y++)
-                {
-                  v[y][x] +=
-                    delta_x * c * c * (u[((y - 1) < 0) ? 0 : y - 1][x] +
-                                       u[((y + 1) ==
-                                          height) ? height - 1 : y + 1][x] +
-                                       u[y][((x - 1) <
-                                             0) ? 0 : x - 1] + u[y][((x +
-                                                                      1) ==
-                                                                     width) ?
-                                                                    width -
-                                                                    1 : x +
-                                                                    1] -
-                                       (4.0 * u[y][x])) / (h * h);
-                }
+                v[y][x] +=
+                  delta_x * c * c * (u[((y - 1) < 0) ? 0 : y - 1][x] +
+                                     u[((y + 1) ==
+                                        height) ? height - 1 : y + 1][x] +
+                                     u[y][((x - 1) <
+                                           0) ? 0 : x - 1] + u[y][((x + 1) ==
+                                                                   width) ?
+                                                                  width -
+                                                                  1 : x + 1] -
+                                     (4.0 * u[y][x])) / (h * h);
 #pragma omp parallel for collapse(2)
             for (int x = 0; x < width; x++)
               for (int y = 0; y < height; y++)
                 u[y][x] += delta_x * v[y][x];
 
           }
-#pragma omp parallel for collapse(2)
+#pragma omp parallel for
         for (int x = 0; x < width; x++)
           for (int y = 0; y < height; y++)
             write_heatmap (u[y][x], &png_frame[y][x * 4]);
@@ -139,14 +134,10 @@ main ()
         fclose (fpout);
         png_destroy_write_struct (&png, &info);
       }
-
     }
 
-/* free */
-#pragma omp parallel for
-  for (int y = 0; y < height; y++)
-    free (png_frame[y]);
   free (png_frame);
+/* free */
 #pragma omp parallel for
   for (int y = 0; y < height; y++)
     {

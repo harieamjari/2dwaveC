@@ -107,7 +107,7 @@ main (int argc, char **argv)
     {
       fprintf (stderr, "usage: %s [wav file]\n", argv[0]);
       return 1;
-}
+    }
 
   FILE *wavin = fopen (argv[1], "rb");
   if (wavin == NULL)
@@ -195,7 +195,7 @@ main (int argc, char **argv)
   pcmin = malloc (sizeof (int16_t) * numsamples);
   pcmout = malloc (sizeof (int16_t) * numsamples);
   fread (pcmin, sizeof (int16_t), numsamples, wavin);
-  fclose(wavin);
+  fclose (wavin);
 
   const double delta_x = 1.0 / 44100.0, c = 450.0, h = 1.0;
 
@@ -235,7 +235,8 @@ main (int argc, char **argv)
       {
         sprintf (buff, "tt-%03d.png", file);
 
-        printf ("\rWriting png frame: %s %d/%d... ", buff, file, ((numsamples * 25) / 44100) - 1);
+        printf ("\rWriting png frame: %s %d/%d... ", buff, file,
+                ((numsamples * 25) / 44100) - 1);
         fflush (stdout);
         for (int i = 0; i < (int) (1.0 / (FPS * delta_x)); i++)
           {
@@ -266,7 +267,7 @@ main (int argc, char **argv)
                   u[y][x] += delta_x * v[y][x];
                   //u[y][x] *= 0.99999;      // damp
                 }
-            pcmout[pcm_ctr] = (int16_t) u[(height/2) + 50][width / 2];
+            pcmout[pcm_ctr] = (int16_t) u[(height / 2) + 50][width / 2];
             pcm_ctr++;
             for (int i = 0; i < bb; i++)
               putchar ('\b');
@@ -277,9 +278,9 @@ main (int argc, char **argv)
           for (int y = 0; y < height; y++)
             write_heatmap (u[y][x], &png_frame[y][x * 4]);
       }
-      png_frame[(height/2) + 50 ][width/2] = 255;
-      png_frame[(height/2) + 50 ][(width/2) + 1] = 0;
-      png_frame[(height/2) + 50 ][(width/2) + 2] = 0;
+      png_frame[(height / 2) + 50][width / 2] = 255;
+      png_frame[(height / 2) + 50][(width / 2) + 1] = 0;
+      png_frame[(height / 2) + 50][(width / 2) + 2] = 0;
 
       FILE *fpout = fopen (buff, "wb");
       if (fpout == NULL)

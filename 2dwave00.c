@@ -79,24 +79,24 @@ main ()
     {
       printf ("\rSimulation %d/%d... ", file, frame - 1);
       fflush (stdout);
-          for (int x = 0; x < width; x++)
-            {
-              for (int y = 0; y < height; y++)
-                v[y][x] +=
-                  delta_x * c * c * (u[((y - 1) < 0) ? 0 : y - 1][x] +
-                                     u[((y + 1) ==
-                                        height) ? height - 1 : y + 1][x] +
-                                     u[y][((x - 1) <
-                                           0) ? 0 : x - 1] + u[y][((x + 1) ==
-                                                                   width) ?
-                                                                  width -
-                                                                  1 : x + 1] -
-                                     (4.0 * u[y][x])) / (h*h);
-            }
+      for (int x = 0; x < width; x++)
+        {
+          for (int y = 0; y < height; y++)
+            v[y][x] +=
+              delta_x * c * c * (u[((y - 1) < 0) ? 0 : y - 1][x] +
+                                 u[((y + 1) ==
+                                    height) ? height - 1 : y + 1][x] +
+                                 u[y][((x - 1) <
+                                       0) ? 0 : x - 1] + u[y][((x + 1) ==
+                                                               width) ?
+                                                              width -
+                                                              1 : x + 1] -
+                                 (4.0 * u[y][x])) / (h * h);
+        }
 #pragma omp parallel for
-          for (int x = 0; x < width; x++)
-            for (int y = 0; y < height; y++)
-              u[y][x] += delta_x * v[y][x];
+      for (int x = 0; x < width; x++)
+        for (int y = 0; y < height; y++)
+          u[y][x] += delta_x * v[y][x];
 
 #pragma omp parallel for
       for (int x = 0; x < width; x++)
@@ -104,7 +104,7 @@ main ()
           write_heatmap (u[y][x], &png_frame[file][y][x * 4]);
     }
   puts ("done");
-  fflush(stdout);
+  fflush (stdout);
 /* free */
 #pragma omp parallel for
   for (int y = 0; y < height; y++)
