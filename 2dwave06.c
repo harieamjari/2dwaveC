@@ -1,7 +1,7 @@
 /* gcc 2dwave06.c -lpng16 -lm -lz -fopenmp -march=native -O3 */
 /* PE https://drive.google.com/file/d/1zPKJwzQFhrK2ftnvRMgUWTAdcJ8gOfXN/view?usp=sharing */
 /* The source code and its compiled binary is license under MIT License and the wav file
- * is used under the Fair Use Act. IF THE COPYRIGHT HOLDER WANTS TO REMOVE THEIR MUSIC
+ * is used under the Fair Use Act. IF THE COPYRIGHT HOLDER WANTS TO REMOVE THEIR MUSIC,
  * PLEASE CONTACT healer.harie@gmail.com */
 #include <stdio.h>
 #include <stdlib.h>
